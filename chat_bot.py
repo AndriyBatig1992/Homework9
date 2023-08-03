@@ -1,97 +1,87 @@
 # ЧАТ_БОТ
 
-def input_error(function):
-    def wraper(*args, **kwargs):
-       try:
-           return function(*args, **kwargs)
-       except KeyError as k:
-           print(f"При вводі сталася помилка: {k}")
-       except ValueError as e:
-           print(f"При вводі сталася помилка: {e}")
-       except IndexError as i:
-           print(f"При вводі сталася помилка: {i}")
-    return wraper
+def input_error(func):
+    def wrapper(*args):
+        try:
+            return func(*args)
+        except IndexError:
+            return 'Give me name and phone please'
+        except KeyError:
+            return 'Enter correct user name. Contact not found'
+        except ValueError:
+            return 'Wrong name to change. Try again!'
+    return wrapper
 
+def good_by(*args):
+   return 'Good bye!'
 
-def say_hi():
-    """Функція привітання"""
-    print('How can I help you?')
+def say_hi(*args):
+    return 'How can I help you?'
 
-def good_by():
-    """Функція до побачення"""
-    print('Good bye!')
+ADRESSBOOK={}
 
-def show_all_contact(contacts: dict)-> None:
-    """Функція показує всі контакти"""
-    message = 'Список контактів порожній. Для додавання контакту використайте функцію "add"'
-    print('\n'.join([f"{name.capitalize()}: {phone}" for name, phone in contacts.items()]) if len(contacts)>0 else message)
+def showall_contacts(*args):
+    if ADRESSBOOK:
+        return "\n".join(f"{name}: {phone}" for name, phone in ADRESSBOOK.items())
+    else:
+        return "No contacts found."
+
+@input_error
+def add_contact(data):
+    name=data[0].title()
+    phone=data[1]
+    ADRESSBOOK[name] = phone
+    return f"Contact '{name}' with phone '{phone}' has been added.\n {ADRESSBOOK}"
+
+@input_error
+def change_contact(data):
+    name = data[0].title()
+    new_phone = data[1]
+    if name in ADRESSBOOK:
+        ADRESSBOOK[name] = new_phone
+        return f"Phone number for contact '{name}' has been updated to '{new_phone}'.\n {ADRESSBOOK}"
+    else:
+        raise ValueError
 
 
 @input_error
-def add_contact(contacts: dict, data: str)-> None:
-    """Функція додає новий контакт до наявних"""
-    arg=data.split()
-    if len(arg) != 2:
-        raise ValueError("Введіть будь-ласка тільки одне ім'я і телефон після  команди 'add'")
-    name, phone = arg
-    if name not in contacts:
-        contacts[name] = [phone]
-        print(f'Додано контакт {name.capitalize()}, телефон якого {phone}')
-    else:
-        print(f'Контакт з іменем {name.capitalize()}, телефон якого {contacts[name][0]}, вже є')
+def get_phone(data):
+    name = data[0].title()
+    return f"Phone number for contact '{name}': {ADRESSBOOK[name]}"
 
 
 
-@input_error
-def change_contact(contacts: dict, data: str)-> None:
-    """Функція змінює телефон наявного контакту"""
-    arg = data.split()
-    if len(arg) != 2:
-        raise ValueError("Введіть будь-ласка тільки одне ім'я і його новий телефон після команди 'change'")
-    name, new_phone = arg
-    if  name not in contacts:
-        raise IndexError(f"Немає що змінювати. Ви не додали користувача {name.capitalize()} до списку!!!'")
-    else:
-        contacts[name] = [new_phone]
-        print(f'У {name.capitalize()} телефон змінився на {new_phone}')
+def handler_parse(rawstr):
+    elements = rawstr.split()
+    for key, value in COMANDS.items():
+        if elements[0].lower() in value or  any(val.startswith(elements[0].lower()) for val in value):
+            return key, elements[1:]
 
 
-@input_error
-def show_phone(contacts: dict, name: str)-> None:
-    """Функція показує телефон наявного контакту"""
-    if len(name.split())!= 1:
-        raise ValueError("Введіть тільки ім'я")
-    if name in contacts:
-        print(contacts[name])
-    else:
-        a = f"Введіть ім'я користувача, який є у списку контактів." \
-        f" Бо користувача {name.capitalize()} немає у контактах"
-        raise KeyError(a)
+
+COMANDS = {add_contact: ['add'],
+          change_contact: ['change'],
+          get_phone: ['phone'],
+          showall_contacts: ['show all'],
+          good_by: ['good bye', 'close', 'exit'],
+          say_hi: ['hello']}
+
 
 def main():
-    """Головна функція"""
-    contacts = {}
     while True:
-         input_user = input('Waiting for command...').lower()
+        user_input = input('Waiting for command...')
+        fun = None
+        try:
+            fun, data = handler_parse(user_input)
+            res=fun(data)
+            print(res)
+        except TypeError:
+            print('Wrong comand. Try again!')
+        if fun == good_by:
+             break
 
-         if input_user == 'hello':
-            say_hi()
-         elif input_user.startswith('add'):
-            _, data = input_user.split(' ', 1)
-            add_contact(contacts, data)
-         elif input_user.startswith('change'):
-            _, data = input_user.split(' ', 1)
-            change_contact(contacts, data)
-         elif input_user.startswith('phone'):
-            _, name = input_user.split(' ', 1)
-            show_phone(contacts, name)
-         elif input_user.startswith('show all'):
-            show_all_contact(contacts)
-         elif input_user in ['good bye', 'close', 'exit']:
-            good_by()
-            break
-         else:
-             print('Unknown command, please try again.')
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
+
