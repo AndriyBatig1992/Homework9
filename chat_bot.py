@@ -35,8 +35,7 @@ def add_contact(data):
 
 @input_error
 def change_contact(data):
-    name = data[0].title()
-    new_phone = data[1]
+    name, new_phone = data[0].title(), data[1]
     if name in ADRESSBOOK:
         ADRESSBOOK[name] = new_phone
         return f"Phone number for contact '{name}' has been updated to '{new_phone}'.\n {ADRESSBOOK}"
@@ -51,13 +50,22 @@ def get_phone(data):
 
 
 
+# def handler_parse(rawstr):
+#     elements = rawstr.split()
+#     for key, value in COMANDS.items():
+#         if elements[0].lower() in value or  any(val.startswith(elements[0].lower()) for val in value):
+#             return key, elements[1:]
+
+
 def handler_parse(rawstr):
     elements = rawstr.split()
+    command = elements[0].lower()
+    if command in COMANDS:
+        return command, elements[1:]
     for key, value in COMANDS.items():
-        if elements[0].lower() in value or  any(val.startswith(elements[0].lower()) for val in value):
+        if any(arg.startswith(command) for arg in value):
             return key, elements[1:]
-
-
+    return None, None
 
 COMANDS = {add_contact: ['add'],
           change_contact: ['change'],
