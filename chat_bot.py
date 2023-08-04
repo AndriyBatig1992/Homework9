@@ -49,14 +49,6 @@ def get_phone(data):
     return f"Phone number for contact '{name}': {ADRESSBOOK[name]}"
 
 
-
-# def handler_parse(rawstr):
-#     elements = rawstr.split()
-#     for key, value in COMANDS.items():
-#         if elements[0].lower() in value or  any(val.startswith(elements[0].lower()) for val in value):
-#             return key, elements[1:]
-
-
 def handler_parse(rawstr):
     elements = rawstr.split()
     command = elements[0].lower()
